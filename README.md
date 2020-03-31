@@ -1,2 +1,2 @@
 # ai-inc
-ai technology
+rl technology
