@@ -2,7 +2,6 @@ import pygame
 import random
 import numpy as np
 from pygame.locals import *
-import sys
 
 
 class MazeEnv:
@@ -154,13 +153,13 @@ class MazeEnv:
             pygame.display.set_caption('Maze')
             self.screen = pygame.display.set_mode(self.screen_size)
 
-            bird = pygame.image.load("../reinforcement_learning/mdp/pic/bird.jpg")
+            bird = pygame.image.load("../pic/bird.jpg")
             self.bird = pygame.transform.scale(bird, (120, 90))
 
-            wall = pygame.image.load("../reinforcement_learning/mdp/pic/wall.jpg")
+            wall = pygame.image.load("../pic/wall.jpg")
             self.wall = pygame.transform.scale(wall, (120, 90))
 
-            destination = pygame.image.load("../reinforcement_learning/mdp/pic/destination.jpg")
+            destination = pygame.image.load("../pic/destination.jpg")
             self.destination = pygame.transform.scale(destination, (120, 90))
 
             self.textFont = pygame.font.SysFont('times', 20)
