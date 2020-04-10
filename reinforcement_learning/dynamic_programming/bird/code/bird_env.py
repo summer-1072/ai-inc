@@ -4,7 +4,7 @@ import numpy as np
 from pygame.locals import *
 
 
-class MazeEnv:
+class BirdEnv:
     def __init__(self):
         self.states = np.arange(0, 100, 1).reshape([10, 10])
         self.values = np.zeros(100).reshape([10, 10])
@@ -147,7 +147,7 @@ class MazeEnv:
             if event.type == QUIT:
                 exit()
 
-    def render(self):
+    def render(self, path):
         if self.screen is None:
             pygame.init()
             pygame.display.set_caption('Maze')
@@ -187,7 +187,14 @@ class MazeEnv:
         for i in range(10):
             for j in range(10):
                 surface = self.textFont.render(str(self.values[i][j]), True, (0, 0, 0))
-                self.screen.blit(surface, (120 * i + 5, 90 * j + 2))
+                self.screen.blit(surface, (120 * i + 5, 90 * j + 75))
+
+        # 绘制路径
+        for i in range(len(path)):
+            rec_position = self.state_to_position(path[i])
+            pygame.draw.rect(self.screen, [255, 0, 0], [rec_position[0], rec_position[1], 120, 90], 2)
+            surface = self.textFont.render(str(i), True, (255, 0, 0))
+            self.screen.blit(surface, (rec_position[0] + 5, rec_position[1] + 5))
 
         pygame.display.update()
         self.game_over()
@@ -195,8 +202,8 @@ class MazeEnv:
 
 
 if __name__ == "__main__":
-    maze = MazeEnv()
-    maze.render()
+    bird_env = BirdEnv()
+    bird_env.render([1])
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
