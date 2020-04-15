@@ -1,13 +1,12 @@
 import pygame
 import random
-import numpy as np
 from pygame.locals import *
 
 
 class BirdEnv:
     def __init__(self):
-        self.states = np.arange(0, 100, 1).reshape([10, 10])
-        self.values = np.zeros(100).reshape([10, 10])
+        self.states = [i for i in range(100)]
+        self.values = [0 for i in range(100)]
         self.actions = ['e', 's', 'w', 'n']
         self.gamma = 0.8
 
@@ -73,7 +72,7 @@ class BirdEnv:
         if (min_diff_x >= self.limit_distance_x) or (min_diff_y >= self.limit_distance_y):
             flag2 = False
 
-        flag = flag1 and flag2
+        flag = flag1 or flag2
 
         if (position[0] < 0 or position[0] > 1080) or (position[1] < 0 or position[1] > 810):
             flag = True
@@ -103,12 +102,13 @@ class BirdEnv:
         return state
 
     def reset(self):
+        state = 0
         is_collision, is_destination = True, True
         while is_collision or is_destination:
             state = self.states[int(random.random() * len(self.states))]
-            state_position = self.state_to_position(state)
-            is_collision = self.collision_detection(state_position)
-            is_destination = self.destination_detection(state_position)
+            position = self.state_to_position(state)
+            is_collision = self.collision_detection(position)
+            is_destination = self.destination_detection(position)
 
         return state
 
@@ -135,7 +135,7 @@ class BirdEnv:
             next_position[1] = current_position[1] - 90
 
         if self.collision_detection(next_position):
-            return self.position_to_state(next_position), -1, True
+            return self.position_to_state(current_position), -1, True
 
         if self.destination_detection(next_position):
             return self.position_to_state(next_position), 1, True
@@ -150,7 +150,7 @@ class BirdEnv:
     def render(self, path):
         if self.screen is None:
             pygame.init()
-            pygame.display.set_caption('Maze')
+            pygame.display.set_caption('Bird')
             self.screen = pygame.display.set_mode(self.screen_size)
 
             bird = pygame.image.load("../pic/bird.jpg")
@@ -168,8 +168,6 @@ class BirdEnv:
             self.screen.fill((0, 180, 0))
             for i in range(11):
                 pygame.draw.lines(self.screen, (255, 255, 255), True, ((120 * i, 0), (120 * i, 900)), 1)
-
-            for i in range(11):
                 pygame.draw.lines(self.screen, (255, 255, 255), True, ((0, 90 * i), (1200, 90 * i)), 1)
 
             # 绘制障碍物
@@ -183,11 +181,17 @@ class BirdEnv:
         # 绘制鸟
         self.screen.blit(self.bird, self.current_position)
 
+        if len(path) > 1:
+            pygame.draw.rect(self.screen, [0, 180, 0], [0, 0, 120, 90], 0)
+            last_position = self.state_to_position(path[-2])
+            pygame.draw.rect(self.screen, [0, 180, 0], [last_position[0], last_position[1], 120, 90], 0)
+
         # 绘制值函数
-        for i in range(10):
-            for j in range(10):
-                surface = self.textFont.render(str(self.values[i][j]), True, (0, 0, 0))
-                self.screen.blit(surface, (120 * i + 5, 90 * j + 75))
+        for i in range(100):
+            x = int(i / 10)
+            y = i % 10
+            surface = self.textFont.render(str(self.values[i]), True, (0, 0, 0))
+            self.screen.blit(surface, (120 * y + 5, 90 * x + 75))
 
         # 绘制路径
         for i in range(len(path)):
@@ -195,8 +199,8 @@ class BirdEnv:
             pygame.draw.rect(self.screen, [255, 0, 0], [rec_position[0], rec_position[1], 120, 90], 2)
             surface = self.textFont.render(str(i), True, (255, 0, 0))
             self.screen.blit(surface, (rec_position[0] + 5, rec_position[1] + 5))
+            pygame.display.update()
 
-        pygame.display.update()
         self.game_over()
         self.FPSClock.tick(30)
 
