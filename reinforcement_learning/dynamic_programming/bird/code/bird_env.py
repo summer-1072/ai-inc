@@ -1,6 +1,7 @@
 import pygame
 import random
 from pygame.locals import *
+import time
 
 
 class BirdEnv:
@@ -10,15 +11,7 @@ class BirdEnv:
         self.actions = ['e', 's', 'w', 'n']
         self.gamma = 0.8
 
-        self.screen = None
-        self.bird = None
-        self.wall = None
-        self.destination = None
-        self.textFont = None
-        self.FPSClock = pygame.time.Clock()
         self.screen_size = (1200, 900)
-
-        self.origin_position = [0, 0]
         self.current_position = [0, 0]
         self.destination_position = [1080, 0]
         self.limit_distance_x = 120
@@ -148,67 +141,83 @@ class BirdEnv:
                 exit()
 
     def render(self, path):
-        if self.screen is None:
-            pygame.init()
-            pygame.display.set_caption('Bird')
-            self.screen = pygame.display.set_mode(self.screen_size)
+        pygame.init()
+        pygame.display.set_caption('Bird')
+        screen = pygame.display.set_mode(self.screen_size)
 
-            bird = pygame.image.load("../pic/bird.jpg")
-            self.bird = pygame.transform.scale(bird, (120, 90))
+        bird = pygame.image.load("../pic/bird.jpg")
+        bird = pygame.transform.scale(bird, (120, 90))
 
-            wall = pygame.image.load("../pic/wall.jpg")
-            self.wall = pygame.transform.scale(wall, (120, 90))
+        wall = pygame.image.load("../pic/wall.jpg")
+        wall = pygame.transform.scale(wall, (120, 90))
 
-            destination = pygame.image.load("../pic/destination.jpg")
-            self.destination = pygame.transform.scale(destination, (120, 90))
+        destination = pygame.image.load("../pic/destination.jpg")
+        destination = pygame.transform.scale(destination, (120, 90))
 
-            self.textFont = pygame.font.SysFont('times', 20)
+        textFont = pygame.font.SysFont('times', 20)
 
-            # 绘制网格
-            self.screen.fill((0, 180, 0))
-            for i in range(11):
-                pygame.draw.lines(self.screen, (255, 255, 255), True, ((120 * i, 0), (120 * i, 900)), 1)
-                pygame.draw.lines(self.screen, (255, 255, 255), True, ((0, 90 * i), (1200, 90 * i)), 1)
+        # 绘制网格
+        screen.fill((0, 180, 0))
+        for i in range(11):
+            pygame.draw.lines(screen, (255, 255, 255), True, ((120 * i, 0), (120 * i, 900)), 1)
+            pygame.draw.lines(screen, (255, 255, 255), True, ((0, 90 * i), (1200, 90 * i)), 1)
 
-            # 绘制障碍物
-            for i in range(8):
-                self.screen.blit(self.wall, (self.obstacle1_x[i], self.obstacle1_y[i]))
-                self.screen.blit(self.wall, (self.obstacle2_x[i], self.obstacle2_y[i]))
+        # 绘制障碍物
+        for i in range(8):
+            screen.blit(wall, (self.obstacle1_x[i], self.obstacle1_y[i]))
+            screen.blit(wall, (self.obstacle2_x[i], self.obstacle2_y[i]))
 
-            # 绘制终点
-            self.screen.blit(self.destination, self.destination_position)
-
-        # 绘制鸟
-        self.screen.blit(self.bird, self.current_position)
-
-        if len(path) > 1:
-            pygame.draw.rect(self.screen, [0, 180, 0], [0, 0, 120, 90], 0)
-            last_position = self.state_to_position(path[-2])
-            pygame.draw.rect(self.screen, [0, 180, 0], [last_position[0], last_position[1], 120, 90], 0)
+        # 绘制终点
+        screen.blit(destination, self.destination_position)
 
         # 绘制值函数
         for i in range(100):
             x = int(i / 10)
             y = i % 10
-            surface = self.textFont.render(str(self.values[i]), True, (0, 0, 0))
-            self.screen.blit(surface, (120 * y + 5, 90 * x + 75))
+            surface = textFont.render(str(self.values[i]), True, (0, 0, 0))
+            screen.blit(surface, (120 * y + 5, 90 * x + 75))
 
-        # 绘制路径
         for i in range(len(path)):
-            rec_position = self.state_to_position(path[i])
-            pygame.draw.rect(self.screen, [255, 0, 0], [rec_position[0], rec_position[1], 120, 90], 2)
-            surface = self.textFont.render(str(i), True, (255, 0, 0))
-            self.screen.blit(surface, (rec_position[0] + 5, rec_position[1] + 5))
+            # 绘制鸟
+            state = path[i]
+            self.current_position = self.state_to_position(state)
+            screen.blit(bird, self.current_position)
+
+            # 绘制红框、路径编号
+            pygame.draw.rect(screen, [255, 0, 0], [self.current_position[0], self.current_position[1], 120, 90], 2)
+
+            surface = textFont.render(str(i), True, (255, 0, 0))
+            screen.blit(surface, (self.current_position[0] + 5, self.current_position[1] + 5))
+
+            # 绘制值函数
+            surface = textFont.render(str(self.values[path[i]]), True, (0, 0, 0))
+            x = int(path[i] / 10)
+            y = path[i] % 10
+            screen.blit(surface, (120 * y + 5, 90 * x + 75))
+
+            # 清理上一步
+            if i >= 1:
+                last_state = path[i - 1]
+                last_position = self.state_to_position(last_state)
+
+                # 绿矩形和红框填充
+                pygame.draw.rect(screen, [0, 180, 0], [last_position[0], last_position[1], 120, 90], 0)
+                pygame.draw.rect(screen, [255, 0, 0], [last_position[0], last_position[1], 120, 90], 2)
+
+                # 绘制上一步编号
+                surface = textFont.render(str(i - 1), True, (255, 0, 0))
+                screen.blit(surface, (last_position[0] + 5, last_position[1] + 5))
+
+                # 绘制上一步值函数
+                surface = textFont.render(str(self.values[last_state]), True, (0, 0, 0))
+                x = int(last_state / 10)
+                y = last_state % 10
+                screen.blit(surface, (120 * y + 5, 90 * x + 75))
+
+            time.sleep(0.5)
+            pygame.time.Clock().tick(30)
             pygame.display.update()
+            self.game_over()
 
-        self.game_over()
-        self.FPSClock.tick(30)
-
-
-if __name__ == "__main__":
-    bird_env = BirdEnv()
-    bird_env.render([1])
-    while True:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                exit()
+        while True:
+            self.game_over()

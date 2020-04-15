@@ -1,5 +1,4 @@
 import random
-import time
 from reinforcement_learning.dynamic_programming.bird.code.bird_env import BirdEnv
 
 
@@ -88,34 +87,24 @@ class DP_Policy_Iter:
 
 if __name__ == "__main__":
     bird_env = BirdEnv()
-    policy_value = DP_Policy_Iter(bird_env, init_policy='balance')
+    policy_value = DP_Policy_Iter(bird_env, init_policy='random')
     policy_value.policy_iterate()
 
     flag = 1
     state = 0
-    path = []
+    path = [state]
     bird_env.values = [round(x, 3) for x in policy_value.values]
 
-
-    step_num = 0
     while flag:
         action = policy_value.pi[state]
-        bird_env.current_position = bird_env.state_to_position(state)
-        bird_env.render(path)
-        time.sleep(0.5)
-        step_num += 1
-
         new_state, reward, is_over = bird_env.transform(state, action[0]['action'])
 
         if is_over:
             flag = 0
 
         state = new_state
-        bird_env.current_position = bird_env.state_to_position(state)
         path.append(state)
-        bird_env.render(path)
 
-    while True:
-        bird_env.render(path)
+    print('path:', path)
 
-
+    bird_env.render(path)
