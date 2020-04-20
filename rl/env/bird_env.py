@@ -2,6 +2,7 @@ import pygame
 import random
 from pygame.locals import *
 import time
+import os
 
 
 class BirdEnv:
@@ -145,13 +146,14 @@ class BirdEnv:
         pygame.display.set_caption('Bird')
         screen = pygame.display.set_mode(self.screen_size)
 
-        bird = pygame.image.load("../pic/bird.jpg")
+        abspath = os.path.abspath('./../..')
+        bird = pygame.image.load(abspath + "/pic/bird/bird.jpg")
         bird = pygame.transform.scale(bird, (120, 90))
 
-        wall = pygame.image.load("../pic/wall.jpg")
+        wall = pygame.image.load(abspath + "/pic/bird/wall.jpg")
         wall = pygame.transform.scale(wall, (120, 90))
 
-        destination = pygame.image.load("../pic/destination.jpg")
+        destination = pygame.image.load(abspath + "/pic/bird/destination.jpg")
         destination = pygame.transform.scale(destination, (120, 90))
 
         textFont = pygame.font.SysFont('times', 20)

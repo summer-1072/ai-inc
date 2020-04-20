@@ -1,5 +1,5 @@
 import random
-from reinforcement_learning.dynamic_programming.bird.code.bird_env import BirdEnv
+from rl.env.bird_env import BirdEnv
 
 
 class DP_Iter:
