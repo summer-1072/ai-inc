@@ -2,19 +2,24 @@ import pygame
 import random
 from pygame.locals import *
 import time
-import os
 
 
 class BirdEnv:
     def __init__(self):
+        self.init_bird()
+        self.init_screen()
+
+    def init_bird(self):
         self.states = [i for i in range(100)]
         self.values = [0 for i in range(100)]
         self.actions = ['e', 's', 'w', 'n']
         self.gamma = 0.8
 
-        self.screen_size = (1200, 900)
+    def init_screen(self):
         self.current_position = [0, 0]
         self.destination_position = [1080, 0]
+
+        self.screen_size = (1200, 900)
         self.limit_distance_x = 120
         self.limit_distance_y = 90
         self.obstacle_size = [120, 90]
@@ -141,61 +146,63 @@ class BirdEnv:
             if event.type == QUIT:
                 exit()
 
-    def render(self, path):
+    def init_render(self):
         pygame.init()
         pygame.display.set_caption('Bird')
-        screen = pygame.display.set_mode(self.screen_size)
+        self.screen = pygame.display.set_mode(self.screen_size)
 
-        abspath = os.path.abspath('./../..')
-        bird = pygame.image.load(abspath + "/pic/bird/bird.jpg")
-        bird = pygame.transform.scale(bird, (120, 90))
+        bird = pygame.image.load("/Users/kai.wang/ai-inc/rl/pic/bird/bird.jpg")
+        self.bird = pygame.transform.scale(bird, (120, 90))
 
-        wall = pygame.image.load(abspath + "/pic/bird/wall.jpg")
-        wall = pygame.transform.scale(wall, (120, 90))
+        wall = pygame.image.load("/Users/kai.wang/ai-inc/rl/pic/bird/wall.jpg")
+        self.wall = pygame.transform.scale(wall, (120, 90))
 
-        destination = pygame.image.load(abspath + "/pic/bird/destination.jpg")
-        destination = pygame.transform.scale(destination, (120, 90))
+        destination = pygame.image.load("/Users/kai.wang/ai-inc/rl/pic/bird/destination.jpg")
+        self.destination = pygame.transform.scale(destination, (120, 90))
 
-        textFont = pygame.font.SysFont('times', 20)
+        self.textFont = pygame.font.SysFont('times', 20)
 
         # 绘制网格
-        screen.fill((0, 180, 0))
+        self.screen.fill((0, 180, 0))
         for i in range(11):
-            pygame.draw.lines(screen, (255, 255, 255), True, ((120 * i, 0), (120 * i, 900)), 1)
-            pygame.draw.lines(screen, (255, 255, 255), True, ((0, 90 * i), (1200, 90 * i)), 1)
+            pygame.draw.lines(self.screen, (255, 255, 255), True, ((120 * i, 0), (120 * i, 900)), 1)
+            pygame.draw.lines(self.screen, (255, 255, 255), True, ((0, 90 * i), (1200, 90 * i)), 1)
 
         # 绘制障碍物
         for i in range(8):
-            screen.blit(wall, (self.obstacle1_x[i], self.obstacle1_y[i]))
-            screen.blit(wall, (self.obstacle2_x[i], self.obstacle2_y[i]))
+            self.screen.blit(self.wall, (self.obstacle1_x[i], self.obstacle1_y[i]))
+            self.screen.blit(self.wall, (self.obstacle2_x[i], self.obstacle2_y[i]))
 
         # 绘制终点
-        screen.blit(destination, self.destination_position)
+        self.screen.blit(self.destination, self.destination_position)
+
+    def render(self, path):
+        self.init_render()
 
         # 绘制值函数
         for i in range(100):
             x = int(i / 10)
             y = i % 10
-            surface = textFont.render(str(self.values[i]), True, (0, 0, 0))
-            screen.blit(surface, (120 * y + 5, 90 * x + 75))
+            surface = self.textFont.render(str(self.values[i]), True, (0, 0, 0))
+            self.screen.blit(surface, (120 * y + 5, 90 * x + 75))
 
         for i in range(len(path)):
             # 绘制鸟
             state = path[i]
             self.current_position = self.state_to_position(state)
-            screen.blit(bird, self.current_position)
+            self.screen.blit(self.bird, self.current_position)
 
             # 绘制红框、路径编号
-            pygame.draw.rect(screen, [255, 0, 0], [self.current_position[0], self.current_position[1], 120, 90], 2)
+            pygame.draw.rect(self.screen, [255, 0, 0], [self.current_position[0], self.current_position[1], 120, 90], 2)
 
-            surface = textFont.render(str(i), True, (255, 0, 0))
-            screen.blit(surface, (self.current_position[0] + 5, self.current_position[1] + 5))
+            surface = self.textFont.render(str(i), True, (255, 0, 0))
+            self.screen.blit(surface, (self.current_position[0] + 5, self.current_position[1] + 5))
 
             # 绘制值函数
-            surface = textFont.render(str(self.values[path[i]]), True, (0, 0, 0))
+            surface = self.textFont.render(str(self.values[path[i]]), True, (0, 0, 0))
             x = int(path[i] / 10)
             y = path[i] % 10
-            screen.blit(surface, (120 * y + 5, 90 * x + 75))
+            self.screen.blit(surface, (120 * y + 5, 90 * x + 75))
 
             # 清理上一步
             if i >= 1:
@@ -203,18 +210,18 @@ class BirdEnv:
                 last_position = self.state_to_position(last_state)
 
                 # 绿矩形和红框填充
-                pygame.draw.rect(screen, [0, 180, 0], [last_position[0], last_position[1], 120, 90], 0)
-                pygame.draw.rect(screen, [255, 0, 0], [last_position[0], last_position[1], 120, 90], 2)
+                pygame.draw.rect(self.screen, [0, 180, 0], [last_position[0], last_position[1], 120, 90], 0)
+                pygame.draw.rect(self.screen, [255, 0, 0], [last_position[0], last_position[1], 120, 90], 2)
 
                 # 绘制上一步编号
-                surface = textFont.render(str(i - 1), True, (255, 0, 0))
-                screen.blit(surface, (last_position[0] + 5, last_position[1] + 5))
+                surface = self.textFont.render(str(i - 1), True, (255, 0, 0))
+                self.screen.blit(surface, (last_position[0] + 5, last_position[1] + 5))
 
                 # 绘制上一步值函数
-                surface = textFont.render(str(self.values[last_state]), True, (0, 0, 0))
+                surface = self.textFont.render(str(self.values[last_state]), True, (0, 0, 0))
                 x = int(last_state / 10)
                 y = last_state % 10
-                screen.blit(surface, (120 * y + 5, 90 * x + 75))
+                self.screen.blit(surface, (120 * y + 5, 90 * x + 75))
 
             time.sleep(0.5)
             pygame.time.Clock().tick(30)

@@ -3,17 +3,17 @@ from rl.env.bird_env import BirdEnv
 
 
 class DP_Iter:
-    def __init__(self, bird_env, init_policy='random'):
-        self.bird_env = bird_env
-        self.states = bird_env.states
-        self.values = bird_env.values
-        self.actions = bird_env.actions
-        self.gamma = bird_env.gamma
+    def __init__(self, birdenv, init_policy='random'):
+        self.birdenv = birdenv
+        self.states = birdenv.states
+        self.values = birdenv.values
+        self.actions = birdenv.actions
+        self.gamma = birdenv.gamma
         self.pi = {}
 
         for state in self.states:
-            flag1 = bird_env.collision_detection(bird_env.state_to_position(state))
-            flag2 = bird_env.destination_detection(bird_env.state_to_position(state))
+            flag1 = birdenv.collision_detection(birdenv.state_to_position(state))
+            flag2 = birdenv.destination_detection(birdenv.state_to_position(state))
             if flag1 or flag2: continue
 
             if init_policy == 'random':
@@ -30,8 +30,8 @@ class DP_Iter:
             delta = 0
             i += 1
             for state in self.states:
-                flag1 = self.bird_env.collision_detection(bird_env.state_to_position(state))
-                flag2 = self.bird_env.destination_detection(bird_env.state_to_position(state))
+                flag1 = self.birdenv.collision_detection(birdenv.state_to_position(state))
+                flag2 = self.birdenv.destination_detection(birdenv.state_to_position(state))
                 if flag1 or flag2: continue
 
                 new_value = 0
@@ -39,7 +39,7 @@ class DP_Iter:
                 for step_action in step_actions:
                     action = step_action['action']
                     pro = step_action['pro']
-                    next_state, reward, is_over = self.bird_env.transform(state, action)
+                    next_state, reward, is_over = self.birdenv.transform(state, action)
                     new_value += pro * (reward + self.gamma * self.values[next_state])
 
                 delta += abs(new_value - self.values[state])
@@ -53,14 +53,14 @@ class DP_Iter:
     # 策略改进
     def policy_improve(self):
         for state in self.states:
-            flag1 = self.bird_env.collision_detection(self.bird_env.state_to_position(state))
-            flag2 = self.bird_env.destination_detection(self.bird_env.state_to_position(state))
+            flag1 = self.birdenv.collision_detection(self.birdenv.state_to_position(state))
+            flag2 = self.birdenv.destination_detection(self.birdenv.state_to_position(state))
             if flag1 or flag2: continue
 
             best_action = None
             value = None
             for action in self.actions:
-                next_state, reward, is_over = self.bird_env.transform(state, action)
+                next_state, reward, is_over = self.birdenv.transform(state, action)
                 new_value = reward + self.gamma * self.values[next_state]
 
                 if (value is None) or (value < new_value):
@@ -91,8 +91,8 @@ class DP_Iter:
         while flag:
             i += 1
             for state in self.states:
-                flag1 = self.bird_env.collision_detection(self.bird_env.state_to_position(state))
-                flag2 = self.bird_env.destination_detection(self.bird_env.state_to_position(state))
+                flag1 = self.birdenv.collision_detection(self.birdenv.state_to_position(state))
+                flag2 = self.birdenv.destination_detection(self.birdenv.state_to_position(state))
                 if flag1 or flag2: continue
 
                 new_value = 0
@@ -100,21 +100,21 @@ class DP_Iter:
                 for step_action in step_actions:
                     action = step_action['action']
                     pro = step_action['pro']
-                    next_state, reward, is_over = self.bird_env.transform(state, action)
+                    next_state, reward, is_over = self.birdenv.transform(state, action)
                     new_value += pro * (reward + self.gamma * self.values[next_state])
 
                 self.values[state] = new_value
 
             delta = 0
             for state in self.states:
-                flag1 = self.bird_env.collision_detection(self.bird_env.state_to_position(state))
-                flag2 = self.bird_env.destination_detection(self.bird_env.state_to_position(state))
+                flag1 = self.birdenv.collision_detection(self.birdenv.state_to_position(state))
+                flag2 = self.birdenv.destination_detection(self.birdenv.state_to_position(state))
                 if flag1 or flag2: continue
 
                 best_action = None
                 value = None
                 for action in self.actions:
-                    next_state, reward, is_over = self.bird_env.transform(state, action)
+                    next_state, reward, is_over = self.birdenv.transform(state, action)
                     new_value = reward + self.gamma * self.values[next_state]
 
                     if (value is None) or (value < new_value):
@@ -131,8 +131,8 @@ class DP_Iter:
 
 
 if __name__ == "__main__":
-    bird_env = BirdEnv()
-    policy_value = DP_Iter(bird_env, init_policy='balance')
+    birdenv = BirdEnv()
+    policy_value = DP_Iter(birdenv, init_policy='balance')
 
     # 通过策略迭代改进策略
     # policy_value.policy_iterate()
@@ -143,11 +143,11 @@ if __name__ == "__main__":
     flag = True
     state = 0
     path = [state]
-    bird_env.values = [round(x, 3) for x in policy_value.values]
+    birdenv.values = [round(x, 3) for x in policy_value.values]
 
     while flag:
         action = policy_value.pi[state]
-        next_state, reward, is_over = bird_env.transform(state, action[0]['action'])
+        next_state, reward, is_over = birdenv.transform(state, action[0]['action'])
 
         if is_over:
             flag = False
@@ -156,4 +156,4 @@ if __name__ == "__main__":
         path.append(state)
 
     print('path:', path)
-    bird_env.render(path)
+    birdenv.render(path)
