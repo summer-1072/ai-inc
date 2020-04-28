@@ -10,7 +10,6 @@ class MCBirdEnv(BirdEnv):
         self.values = [0 for i in range(100)]
         self.actions = ['e', 's', 'w', 'n']
         self.q_values = np.zeros((100, 4))
-        self.n = np.zeros((100, 4))
         self.gamma = 0.9
 
     def transform(self, state, action):
